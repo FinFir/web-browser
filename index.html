@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Web Browser</title>
+    <style>
+        .highlight {
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+    <input type="text" id="urlInput" placeholder="Enter URL">
+    <button onclick="openPage()">Go</button>
+    <br>
+    <input type="text" id="searchInput" placeholder="Search words">
+    <button onclick="searchWords()">Search</button>
+    <br>
+    <iframe id="browserFrame" width="100%" height="400"></iframe>
+
+    <script>
+        function openPage() {
+            var url = document.getElementById('urlInput').value;
+            document.getElementById('browserFrame').src = 'http://' + url;
+        }
+
+        function searchWords() {
+            var searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            var content = document.getElementById('browserFrame').contentDocument.body;
+            var textNodes = getTextNodes(content);
+
+            textNodes.forEach(function(node) {
+                var nodeText = node.nodeValue.toLowerCase();
+                var index = nodeText.indexOf(searchTerm);
+                while (index !== -1) {
+                    var before = node.splitText(index);
+                    var middle = before.splitText(searchTerm.length);
+                    var span = document.createElement('span');
+                    span.className = 'highlight';
+                    span.appendChild(before.cloneNode(true));
+                    node.parentNode.replaceChild(span, before);
+                    index = nodeText.indexOf(searchTerm, index + searchTerm.length);
+                }
+            });
+        }
+
+        function getTextNodes(element) {
+            var textNodes = [];
+            function collectTextNodes(node) {
+                if (node.nodeType === 3) {
+                    textNodes.push(node);
+                } else {
+                    for (var i = 0; i < node.childNodes.length; i++) {
+                        collectTextNodes(node.childNodes[i]);
+                    }
+                }
+            }
+            collectTextNodes(element);
+            return textNodes;
+        }
+    </script>
+</body>
+</html>
